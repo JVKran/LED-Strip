@@ -33,7 +33,7 @@ class mqttClient {
         mqttClient(char* ssid, char* password, char* mqttServer, array<const char*, 4> topics, WiFiClient & espClient, const bool retainedMessages = true, const uint8_t qosLevel = 1);
 
         void addListener(messageListener & listener);
-        void notifyListeners(const String & mesage, const char* topic);
+        void notifyListeners(const String & mesage, const char* topic = "");
 
         void setupWifi();
         void setupConnections();

@@ -10,6 +10,9 @@ class color {
         uint16_t blue;
 
         color(const uint16_t red = 0, const uint16_t green = 0, const uint16_t blue = 0);
+        uint16_t dominantColorValue();
+
+        void operator*=(const int & factor);
 };
 
 class ledStrip : public messageListener {
@@ -17,7 +20,15 @@ class ledStrip : public messageListener {
 		const uint8_t redPin;
 		const uint8_t greenPin;
 		const uint8_t bluePin;
+
+		unsigned long brightnessReceived = 0;
+
 		uint16_t currentBrightness = 0;
+		uint16_t desiredBrightness = 0;
+		unsigned long fadeDuration = 0;
+		unsigned long fadePeriod = 0;
+		unsigned long lastFade = 0;
+		int16_t differencePerSec = 0;
 
 		mqttClient & client;
 
@@ -27,6 +38,7 @@ class ledStrip : public messageListener {
 
 		void setColor(const color & colorToEnable);
 		void setBrightness(const uint16_t brightness);
+		void fadeLights();
 
 		void updateAvailabiliy(const bool stateAvailable);
 		virtual void messageReceived(const String & receivedMessage, const char* topic = "") override;

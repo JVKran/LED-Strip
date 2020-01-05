@@ -7,6 +7,21 @@ color::color(const uint16_t red, const uint16_t green, const uint16_t blue):
 	blue(blue)
 {}
 
+uint16_t color::dominantColorValue(){
+	if(red > green && red > blue){
+		return red;
+	} else if (green > red && green > blue){
+		return green;
+	}
+	return blue;
+}
+
+void color::operator*=(const int & factor){
+	red *= factor;
+	green *= factor;
+	blue *= factor;
+}
+
 ledStrip::ledStrip(const uint8_t redPin, const uint8_t greenPin, const uint8_t bluePin, mqttClient & client):
 	redPin(redPin),
 	greenPin(greenPin),
@@ -37,14 +52,31 @@ void ledStrip::setColor(const color & colorToEnable){
 }
 
 void ledStrip::setBrightness(const uint16_t brightness){
-	setColor(color(brightness, brightness, brightness));
-	currentBrightness = int(brightness / 10.3);
+	desiredBrightness = brightness;
+	differencePerSec = (desiredBrightness - currentBrightness);
+	brightnessReceived = millis();
+}
+
+void ledStrip::fadeLights(){
+	if(desiredBrightness != currentBrightness && millis() > lastFade + 10){
+		lastFade = millis();
+		if(currentBrightness + differencePerSec / 70 > desiredBrightness && differencePerSec > 0){
+			currentBrightness = desiredBrightness;
+		} else if(currentBrightness + differencePerSec / 70 < desiredBrightness && differencePerSec < 0){
+			currentBrightness = desiredBrightness;
+		} else {
+			currentBrightness += differencePerSec / 70;
+		}
+		setColor(color(currentBrightness, currentBrightness, currentBrightness));
+	}
 }
 
 void ledStrip::messageReceived(const String & receivedMessage, const char* topic){
 	if(receivedMessage == "ON"){
-		setColor(lastColor);
-		client.sendMessage("/woonkamer/ledstrip/state", "ON");
+		if(millis() > brightnessReceived + 1000){
+			setBrightness(1023);
+			client.sendMessage("/woonkamer/ledstrip/state", "ON");
+		}
 	} else if (receivedMessage == "OFF"){
 		setBrightness(0);
 		client.sendMessage("/woonkamer/ledstrip/state", "OFF");

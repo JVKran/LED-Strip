@@ -44,13 +44,11 @@ void mqttClient::setupConnections(){
 
 void mqttClient::reconnect() {
     while (!client.connected()) {
-        if (client.connect("LedStripClient", "LedStripClient", "Snip238!")) {
+        if (client.connect("LedStripClientNew", "LedStripClientNew", "Snip238!")) {
             for(const char* & topic : topics){
                 client.subscribe(topic, qosLevel);
             }
-            for (int i = 0; i < amountOfListeners; i++){
-                listeners[i]->messageReceived("CONNECTED");
-            }
+            notifyListeners("CONNECTED");
             break;
         } else {
             delay(500);

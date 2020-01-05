@@ -1,9 +1,8 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <PubSubClient.h>
 #include <WiFiUdp.h>
-#include "mqttClient.hpp"
 #include <ArduinoOTA.h>
+#include <PubSubClient.h>
+#include "mqttClient.hpp"
 #include "ledStrip.hpp"
 #include "array.hpp"
 
@@ -23,13 +22,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
  
 void setup() {
-  ArduinoOTA.begin();
   client.addListener(led);
   client.setupWifi();
   client.setupConnections();
-}
+
+  ArduinoOTA.setHostname("Led Strip");
+  ArduinoOTA.setPassword((const char *)"OTA-PASS");
+  ArduinoOTA.begin();
+  }
  
 void loop() {
   ArduinoOTA.handle();
+
   client.checkForMessages();
+  led.fadeLights();
 }
